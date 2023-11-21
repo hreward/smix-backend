@@ -1,3 +1,7 @@
+#custom
+sessions
+tmps
+cdn
 # Logs
 logs
 *.log
