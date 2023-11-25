@@ -1,5 +1,5 @@
 const { Coop } = require("../models/business.model");
-const { User } = require("../models/user.model");
+const { User } = require("../models/client.model");
 
 
 class SearchController{

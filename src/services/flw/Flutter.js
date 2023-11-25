@@ -1,6 +1,6 @@
 const uuid = require("uuid");
 const superagent = require("superagent");
-const { User } = require("../../models/user.model");
+const { User } = require("../../models/client.model");
 const { Card } = require("../../models/card.model");
 
 class Flutter {

@@ -11,6 +11,7 @@ exports.up = function(knex) {
     table.string('bank_code', 20).notNullable();
     table.string('account_name', 50).notNullable();
     table.string('account_number', 20).notNullable();
+    table.timestamp('updated_at').defaultTo(knex.fn.now());
     table.string('status', 20).nullable();
   });
 };

@@ -1,6 +1,6 @@
 const http = require ("http");
 const {mapp} = require ("./app");
-const { CronJobs } = require("../src/controllers/cronjobs.controller");
+// const { CronJobs } = require("../src/controllers/cronjobs.controller");
 const scheduler = require("node-schedule");
 const { createWebSocketServer } = require("./wsapp");
 
@@ -19,4 +19,4 @@ server.listen(PORT, ()=>{
 const cronRule = new scheduler.RecurrenceRule();
 cronRule.minute = 1;
 //"*/5 * * * *" for 5minutes pass each hour
-const gettingAS = scheduler.scheduleJob(cronRule, CronJobs.getAutoSave);
+// const gettingAS = scheduler.scheduleJob(cronRule, CronJobs.getAutoSave);

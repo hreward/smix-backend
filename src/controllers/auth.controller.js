@@ -1,21 +1,18 @@
-const { User } = require("../models/user.model");
+const { User } = require("../models/client.model");
 const { Auth } = require("../models/auth.model");
-const {countrycurrency} = require("../helper");
 const { EmailController } = require("./email.controller");
 const { AuthCodes } = require("../models/authcodes.model");
-const { Coop } = require("../models/business.model");
+const { Business } = require("../models/business.model");
 const uaParser = require("ua-parser-js");
 const uuid = require("uuid");
 const { hash } = require("bcryptjs");
-const { Wallet } = require("../models/wallet.model");
-const { Feedback } = require("../models/feedback.model");
-const { renameSync } = require("fs");
+const { body, validationResult } = require("express-validator");
 
 
 class AuthController {
     // Authentication middleware function
     /**
-     * @returns {User}
+     * @returns {Business}
     **/
     static async requireLogin (request, response, next) {//doner
         const token = request.headers.authorization;
@@ -34,8 +31,8 @@ class AuthController {
         tokenData.token = token;
         
         try {
-            const user = await Auth.authenticateTokenAccess(tokenData);
-            request.user = user;
+            const business = await Auth.authenticateTokenAccess(tokenData);
+            request.business = business;
             next();
         } catch (error) {
             return response.status(401).json({
@@ -47,187 +44,27 @@ class AuthController {
     };
 
 
-    // Authentication middleware function
-    /**
-     * @returns {Coop}
-    **/
-    static async requireCoopAdmin (request, response, next) {//doner
-        const coopid = request.coopid;
-        if (!coopid) {
+    static async login(request, response){
+
+        // Do input validation
+        const validationRules = [
+            body('email').isEmail().withMessage('Email address is missing'),
+            body('password').isLength({ min: 8 }).withMessage('Incorrect email or password'),
+        ];
+        await Promise.all(validationRules.map(validation => validation.run(request)));
+
+        // Get validation results
+        const errors = validationResult(request);
+        if (!errors.isEmpty()) {
             return response.status(400).json({
-            error: 'Coop ID is missing'
-            });
-        }
-        
-        
-        try {
-            const coop = await Coop.findById(coopid);
-            const user = request.user;
-            // check if user is an admin/exco of this coop
-            if(await coop.getUserRole(user.id) === 'chairman'){
-                request.coop = coop;
-                next();
-            } else {
-                throw new Error("Not authorized")
-            }
-        } catch (error) {
-            return response.status(401).json({
                 status: "error",
                 success: false,
-                message: error.message
-            })
-        }
-    };
-
-    static async newUser(request, response){//doner
-        var userData = request.body.userData;
-        if(!userData.email || userData.email.length < 0){
-            return response.status(400).json({status:"error", success:false, message:"Email address is missing"});
-        } else if(!userData.password || userData.password.length < 8){
-            return response.status(400).json({status:"error", success:false, message:"Phone number is missing or too short"});
-        } else if(!userData.firstname || userData.firstname.length < 3){
-            return response.status(400).json({status:"error", success:false, message:"Firstname is missing or too short"});
-        } else if(!userData.lastname || userData.lastname.length < 3){
-            return response.status(400).json({status:"error", success:false, message:"Lastname is missing or too short"});
-        } else if(!userData.phone || userData.phone.length < 11){
-            return response.status(400).json({status:"error", success:false, message:"Phone number is missing or too short"});
-        } else if(!userData.country || !countrycurrency.supportedCountries.includes(userData.country.toLowerCase())){
-            return response.status(400).json({status:"error", success:false, message:"unsupported country"});
-        }
-        try {
-            //cascade user
-            const userId = uuid.v4().replace("-","").slice(0, 15).toUpperCase();
-	        const user =  new User(userId, userData.firstname, userData.lastname, userData.email, userData.password);
-            await user.setPassword(userData.password);
-	        user.phone = userData.phone;
-	        user.country = userData.country;
-	        user.status = "awaiting_confirmation";
-
-            console.log("submitted: "+userData.password);
-	
-	        //saving user
-	        await user.save();
-	        
-	        //send otp email to user
-	        await EmailController.sendSignupEmail(user.email, user.lastName);
-
-            //return response
-	        return response.status(200).json({
-	            status:true,
-	            success:true,
-	            message: "Signup successful. We have sent you a confirmation email."
-	        });
-        } catch (error) {
-            console.error(error);
-            return response.status(400).json({
-                status:true,
-                success:false,
-                message:error.message
+                message: errors.array()[0].msg,
+                errors: errors.array()[0]
             });
         }
-                    
-    }
 
-    static async checkEmail(request, response){//doner
-        // console.log(request);
-        if(!request.body.email || request.body.email.length < 5){
-            return response.status(400).json({status:"error", success:false, message:"Email address is missing"});
-        }
-
-        try{
-            const user = await User.findByEmail(request.body.email);
-            
-            return response.status(200).json({
-                status:true,
-                success:false,
-                message:"Email already exists"
-            });
-        } catch(error) {
-            if(error.message === `User with email ${request.body.email} not found`){
-                return response.status(200).json({
-                    status:true,
-                    success:true,
-                    message: `Email ${request.body.email} is available`
-                });
-            } else {
-                console.log(error);
-                return response.status(200).json({
-                    status:"error",
-                    success:true,
-                    message: error.message
-                });
-            }
-        }
-    }
-
-    static async verifyOTP(request, response){ //doner
-        // console.log(request);
-        if(!request.body.email || request.body.email.length < 5){
-            return response.status(400).json({status:"error", success:false, message:"Email address is missing or invalid"});
-        } else if(!request.body.otp || request.body.otp.length < 4){
-            return response.status(400).json({status:"error", success:false, message:"OTP is missing or too short"});
-        }
-        
-        try{
-            request.body.email = request.body.email.trim();
-            request.body.otp = request.body.otp.trim();
-            const codeVerified = await AuthCodes.verifyCode(request.body.email, request.body.otp);
-            if(codeVerified !== true) throw new Error("Incorrect Code");
-
-            const user = await User.findByEmail(request.body.email);
-            user.status = 'active';
-
-            // creating wallet for user
-            const walletRef = uuid.v4().replace("/-/g","").slice(0, 15).toUpperCase();
-            const userWallet = new Wallet(walletRef, user.id, 0, "NGN", "active");
-            await userWallet.save();
-
-            await user.save();
-
-            const loginData = {};
-            var uap = uaParser(request.headers['user-agent']);
-            loginData.email = user.email;
-            loginData.device_signature = await hash(uap.ua, 2);
-            loginData.device_name = `${uap.os.name}-${uap.os.version}`;
-            loginData.browser = `${uap.browser.name}`;
-
-            const token = await Auth.authorizeUser(user.id, loginData);
-            
-            //mark code as used
-            await AuthCodes.markCodeUsed(request.body.email, request.body.otp);
-            
-            return response.status(200).json({
-                status:true,
-                success:true,
-                data: token,
-                message:"OTP validated successfully"
-            });
-                
-        } catch(error) {
-            return response.status(200).json({
-                status:"error",
-                success:false,
-                message: error.message
-            });
-        }
-    }
-
-    static async checkPhone(request, response){
-        return response.status(200).json({
-            status:true,
-            success:false,
-            data:"phone"
-        });
-    }
-
-    static async login(request, response){ //doner
-        // console.log(request);
-        var loginData = request.body.userData
-        if(!loginData.email || loginData.email.length < 5){
-            return response.status(400).json({status:"error", success:false, message:"Email address is missing"});
-        } else if(!loginData.password || loginData.password.length < 5){
-            return response.status(400).json({status:"error", success:false, message:"Incorrect email or password"});
-        }
+        var loginData = request.body
 
         var uap = uaParser(request.headers['user-agent']);
         loginData.device_signature = await hash(uap.ua, 2);
@@ -236,31 +73,26 @@ class AuthController {
         
         
         try {
-            const userId = await Auth.authenticateUser(loginData.email, loginData.password);
-            const user = await User.findById(userId);
+            const businessid = await Auth.authenticateBusiness(loginData.email, loginData.password);
+            const business = await Business.findById(businessid);
             
-            //confirm is user active or waiting activation
-            // if(user.status === "awaiting_confirmation"){
-            //     //resend verification email
-            //     EmailController.sendSignupEmail(user.email, user.lastname).catch((reason)=>{console.log(reason.message);});
-            //     throw new Error("User account not confirmed yet. We have sent you another confirmation email");
+            // if(business.status !== 'active'){
+            //     throw new Error("Account is not active. Verify email or Please contact support.")
             // }
-            if(user.status !== 'active'){
-                throw new Error("Account is not active. Verify email or Please contact support.")
-            }
 
             //get token for this login
-            const loginToken = await Auth.authorizeUser(userId, loginData);
+            const loginToken = await Auth.authorizeBusiness(businessid, loginData);
 
             return response.status(200).json({
                 status:true,
                 success:true,
-                data: {token:loginToken},
+                data: {token: loginToken},
                 message: "Login successful"
             });
+
         } catch (error) {
             console.error(error);
-            return response.status(200).json({
+            return response.status(500).json({
                 status:true,
                 success:false,
                 message:error.message
@@ -272,18 +104,20 @@ class AuthController {
         const token = request.headers.authorization || "";
         try{
             //confirm login
-            const user = request.user;
-            if(!user) throw new Error("You need to log in.");
+            /**
+             * @type {Business}
+             */
+            const business = request.business;
+            if(!business) throw new Error("You need to log in.");
 
-            await Auth.unAuthorizeUser(user.id, token);
+            await Auth.unAuthorizeBusiness(business.reference, token);
             return response.status(200).json({
                 status:true,
                 success:true,
                 message: 'logout is successful'
             });
         } catch(error) {
-            console.error(error);
-            return response.status(200).json({
+            return response.status(500).json({
                 status:'error',
                 success:false,
                 message: error.message
@@ -438,67 +272,6 @@ class AuthController {
             console.error(error);
             return response.status(200).json({
                 status:"error",
-                success:false,
-                message:error.message
-            });
-        }
-    }
-
-
-    // Feedback
-    
-    static async createFeedback(request, response){//doner
-        const feedbackData = request.body;
-        if(feedbackData == undefined){
-            return response.status(200).json({status:"error", success:false, message:"Incomplete info submitted"});
-        } else if(!feedbackData.name || feedbackData.name.length < 3){
-            return response.status(200).json({status:"error", success:false, message:"Please enter a valid"});
-        } else if(!feedbackData.email || feedbackData.email.length < 5) {
-            return response.status(200).json({status:"error", success:false, message:"Please enter a valid email address"});
-        } else if(!feedbackData.pageurl || feedbackData.pageurl.length < 3) {
-            return response.status(200).json({status:"error", success:false, message:"Page url is missing"});
-        } else if(!feedbackData.message || feedbackData.message.length < 10) {
-            return response.status(200).json({status:"error", success:false, message:"Message is missing or too short"});
-        }
-
-        //setting defaults
-        if(!feedbackData.pagename || feedbackData.pagename.length < 3) {
-            feedbackData.pagename = "";
-        }
-        
-        try {
-            /**
-             * @type {User}
-             */
-            const user = request.user;
-            if(!user) throw new Error("You need to login");
-            
-            // handle files uploaded
-            if(request.file){
-                const attachmentFile = request.file;
-                const newDest = `${process.env.cdnDir}attachments/`; // please use absolute path reference here
-                const newFilename = `${attachmentFile.filename}.png`;
-                renameSync(attachmentFile.path, `${newDest}${newFilename}`);
-                var attachment = newFilename;
-            } else {
-                var attachment = ""
-            }
-
-            const reference = uuid.v4().replace("-","").slice(0, 12).toUpperCase();
-            const feedback = new Feedback(reference, feedbackData.name, feedbackData.email, feedbackData.pagename, feedbackData.pageurl, feedbackData.message, attachment, 'active');
-
-            await feedback.save();
-
-            return response.status(200).json({
-                status:true,
-                success:true,
-                message: "Feedback submitted successfully. We value it and will work towards it."
-            });
-        
-        } catch (error) {
-            console.error(error);
-            return response.status(200).json({
-                status:true,
                 success:false,
                 message:error.message
             });

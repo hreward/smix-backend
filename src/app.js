@@ -6,11 +6,8 @@ var FileStore = require('session-file-store')(session);
 require('dotenv').config();
 
 const {router: AuthRouter} = require("./routes/auth.router");
-const {router: UserRouter} = require("./routes/user.router");
-const {router: CoopRouter} = require("./routes/business.router");
-const {router: ChatRouter} = require("./routes/chat.router");
-const {router: WalletRouter} = require("./routes/wallet.router");
-const {router: AdminRouter} = require("./routes/admin.router");
+const {router: BusinessRouter} = require("./routes/business.router");
+const {router: ClientRouter} = require("./routes/client.router");
 
 const mapp = express();
 
@@ -33,17 +30,9 @@ mapp.use(session({
 }));
 
 
-mapp.use((request, response, next)=>{
-	// saveSession(request.session);
-	next();
-});
-
-
 mapp.use("/auth", AuthRouter);
-mapp.use("/user", UserRouter);
-mapp.use("/coop", CoopRouter);
-mapp.use("/chat", ChatRouter);
-mapp.use("/wallet", WalletRouter);
+mapp.use("/business", BusinessRouter);
+mapp.use("/client", ClientRouter);
 
 
 module.exports = {mapp};

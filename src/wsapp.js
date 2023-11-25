@@ -1,8 +1,8 @@
 const WebSocket = require('ws');
 const uaParser = require("ua-parser-js");
 const { Auth } = require('./models/auth.model');
-const { User } = require('./models/user.model');
 const { isNotEmpty } = require('./helper');
+const { Business } = require('./models/business.model');
 
 // Define an event for new notifications
 const NOTIFICATION_EVENT = 'new-notification';
@@ -25,7 +25,7 @@ const createWebSocketServer = (server) => {
             }
 
             //confirm login
-            var uap = uaParser(request.headers['user-agent']);
+            var uap = uaParser(request.headers['business-agent']);
             const tokenData = {};
             tokenData.device_signature = uap.ua;
             tokenData.device_name = `${uap.os.name}-${uap.os.version}`;
@@ -33,12 +33,12 @@ const createWebSocketServer = (server) => {
             tokenData.token = token;
         
             /**
-             * @type {User}
+             * @type {Business}
              */
-            const thisuser = await Auth.authenticateTokenAccess(tokenData);
-            ws.userId = thisuser.id;
+            const thisbusiness = await Auth.authenticateTokenAccess(tokenData);
+            ws.businessId = thisbusiness.id;
             // Store the WebSocket connection in the clients map
-            socketClients.set(ws.userId, ws);
+            socketClients.set(ws.businessId, ws);
         } catch (error) {
             ws.close();
             console.log(error);
@@ -62,19 +62,19 @@ const createWebSocketServer = (server) => {
 
         // Handle disconnections
         ws.on('close', () => {
-            socketClients.delete(ws.userId); // Remove the WebSocket connection from the clients map
+            socketClients.delete(ws.businessId); // Remove the WebSocket connection from the clients map
         });
     });
 
     return wss;
 };
 
-// Function to send a WebSocket message to a specific user
-const sendWebSocketMessageToUser = (userId, data) => {
-    const ws = socketClients.get(userId);
+// Function to send a WebSocket message to a specific business
+const sendWebSocketMessageToBusiness = (businessId, data) => {
+    const ws = socketClients.get(businessId);
     if (ws) {
         ws.send(JSON.stringify(data));
     }
 };
 
-module.exports = {socketClients, createWebSocketServer, sendWebSocketMessageToUser};
+module.exports = {socketClients, createWebSocketServer, sendWebSocketMessageToBusiness};

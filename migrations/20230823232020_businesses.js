@@ -7,6 +7,9 @@ exports.up = function(knex) {
       table.increments('id').primary();
       table.string('reference', 50).notNullable().unique();
       table.string('name', 100).notNullable();
+      table.string('email', 100).notNullable();
+      table.string('password', 200).notNullable();
+      table.string('phone', 50).notNullable();
       table.string('registration_id', 100).nullable();
       table.string('logo', 200).nullable();
       table.string('country', 100).notNullable();

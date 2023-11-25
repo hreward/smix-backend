@@ -1,35 +1,36 @@
 const { knex } = require('./db.model');
 const bcrypt = require('bcryptjs');
 const uuid = require('uuid');
-const { User } = require('./user.model');
+const { User } = require('./client.model');
+const { Business } = require('./business.model');
 
 class Auth {
-	static async authenticateUser(email, password) {
-		const user = await knex('users').where({ email }).first().catch(
+	static async authenticateBusiness(email, password) {
+		const business = await knex('businesses').where({ email }).first().catch(
 			(error)=>{throw new Error("internal error"+error);}
 		);
-		if (!user) {
-			throw new Error(`User with email ${email} not found`);
+		if (!business) {
+			throw new Error(`Business with email ${email} not found`);
 		}
-		const passwordMatch = await bcrypt.compare(password, user.password);
+		const passwordMatch = await bcrypt.compare(password, business.password);
 		if (!passwordMatch) {
 			throw new Error(`Incorrect password`);
 		}
-		return user.uuid;
+		return business.reference;
 	}
 
-	static async authorizeUser(userId, loginData) {
-		const user = await knex('users').where({ uuid: userId }).first().catch(
+	static async authorizeBusiness(businessid, loginData) {
+		const business = await knex('businesses').where({ reference: businessid }).first().catch(
 			(error)=>{throw new Error(`internal error ${error}`);}
 		);
-		if (!user) {
-			throw new Error(`User with ID ${userId} not found`);
+		if (!business) {
+			throw new Error(`Business with ID ${businessid} not found`);
 		}
 
 		let token = uuid.v4().replace("-","");
 		await knex('auth_tokens').insert({
-			user_id: userId,
-			user_email:loginData.email,
+			business_reference: businessid,
+			business_email:loginData.email,
 			token,
             device_signature: loginData.device_signature,
             browser: loginData.browser,
@@ -41,38 +42,38 @@ class Auth {
 		);
 		
 		return token;
-		// TODO grant user role access
+		// TODO grant business role access
 	}
 
-	static async unAuthorizeUser(userId, token) {
-		await knex('auth_tokens').where({ user_id: userId, token }).delete().catch(
+	static async unAuthorizeBusiness(businessid, token) {
+		await knex('auth_tokens').where({ business_reference: businessid, token }).delete().catch(
 			(error)=>{throw new Error("internal error");}
 		);
 		return true;
 	}
 
-	static async getUserbyToken(token) {
-		const auth_token = await knex('auth_tokens').where({ token:token }).first().catch(
+	static async getBusinessbyToken(token) {
+		const authToken = await knex('auth_tokens').where({ token:token }).first().catch(
 			(error)=>{throw new Error("internal error"+error);}
 		);
-		if (!auth_token) {
+		if (!authToken) {
 			throw new Error(`Session token '${token}' not found`);
 		}
 		
-		const user = User.findById(auth_token.userId);
-		return user;
+		const business = Business.findById(authToken.business_reference);
+		return business;
 	}
 
 	static async authenticateTokenAccess(loginData) {
-        const auth_token = await knex('auth_tokens').where({token:loginData.token, browser: loginData.browser, device_name: loginData.device_name, status: 'active'}).first().catch(
+        const authToken = await knex('auth_tokens').where({token:loginData.token, browser: loginData.browser, device_name: loginData.device_name, status: 'active'}).first().catch(
 			(error)=>{throw new Error("internal error"+error);}
 		);
-		if (!auth_token) {
+		if (!authToken) {
 			throw new Error(`Session token '${loginData.token}' not found`);
 		}
 		
-		const user = User.findById(auth_token.user_id);
-		return user;
+		const business = Business.findById(authToken.business_reference);
+		return business;
 	}
 }
 
