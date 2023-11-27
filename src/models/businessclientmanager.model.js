@@ -1,5 +1,4 @@
 const { knex } = require("./db.model");
-const uuid = require("uuid");
 const { Client } = require("./client.model");
 
 class BusinessClientManager {

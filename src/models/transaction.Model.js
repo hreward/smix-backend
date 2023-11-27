@@ -2,23 +2,26 @@ const uuid = require('uuid');
 const { knex } = require('./db.model');
 
 class Transaction {
-	// _reference
-	// _senderWallet
-	// _recipientWallet
-	// _amount
-	// _narration;
-	// _createdAt;
-	// _status;
+	_reference;
+	_businessid;
+	_invoiceid;
+	_clientid;
+	_amount;
+	_currency;
+	_channel;
+	_createdAt;
+	_status;
 
-	constructor(reference, type, senderWallet, recipientWallet, amount, narration, createdAt, status) {
+	constructor(reference, businessid, invoiceid, clientid, amount, currency, channel, status, createdAt) {
 		this._reference = reference;
-		this._type = type;
-		this._senderWallet = senderWallet;
-		this._recipientWallet = recipientWallet;
+		this._businessid = businessid;
+		this._invoiceid = invoiceid;
+		this._clientid = clientid;
 		this._amount = amount;
-		this._narration = narration;
-		this._createdAt = createdAt;
+		this._currency = currency;
+		this._channel = channel;
 		this._status = status;
+		this._createdAt = createdAt;
 	}
 
 	// Getters and setters
@@ -26,28 +29,25 @@ class Transaction {
 		return this._reference;
 	}
 
-	get senderWallet() {
-		return this._senderWallet;
+	get businessid() {
+		return this._businessid;
+	}
+	set businessid(value) {
+		this._businessid = value;
 	}
 
-	set senderWallet(senderWallet) {
-		this._senderWallet = senderWallet;
+	get invoiceid() {
+		return this._invoiceid;
+	}
+	set invoiceid(value) {
+		this._invoiceid = value;
 	}
 
-	get type() {
-		return this._type;
+	get clientid() {
+		return this._clientid;
 	}
-
-	set type(type) {
-		this._type = type;
-	}
-
-	get recipientWallet() {
-		return this._recipientWallet;
-	}
-
-	set recipientWallet(recipientWallet) {
-		this._recipientWallet = recipientWallet;
+	set clientid(value) {
+		this._clientid = value;
 	}
 
 	get amount() {
@@ -57,16 +57,19 @@ class Transaction {
 	set amount(amount) {
 		this._amount = amount;
 	}
-
-	get createdAt() {
-		return this._createdAt;
+	
+	get currency() {
+		return this._currency;
+	}
+	set currency(value) {
+		this._currency = value;
 	}
 
-	get narration() {
-		return this._narration;
+	get channel() {
+		return this._channel;
 	}
-	set narration(value) {
-		this._narration = value;
+	set channel(value) {
+		this._channel = value;
 	}
 
 	get status() {
@@ -76,58 +79,41 @@ class Transaction {
 		this._status = value;
 	}
 
+	get createdAt() {
+		return this._createdAt;
+	}
+
 	
-	static async create(type, senderWallet, recipientWallet, amount, narration, channel, status) {
-		
-		const reference = uuid.v4().replace("-", "");
-		const result = await knex('transactions').insert({
+	static async create(businessid, invoiceid, clientid, amount, currency, channel, status) {
+		const reference = uuid.v4().replace("-", "").slice(0, 12);
+		await knex('transactions').insert({
 			reference,
-			type,
+			business_reference: businessid,
+			invoice_reference: invoiceid,
+			client_reference: clientid,
 			amount,
+			currency,
 			channel,
-			sender_wallet: senderWallet,
-			recipient_wallet: recipientWallet,
-			narration,
 			created_at: new Date(),
 			status
 		}).catch(
 			(error)=>{throw new Error("internal error"+error);}
 		);
-		return new Transaction(reference, type, senderWallet, recipientWallet, amount, narration, new Date(), channel, status);
-	}
-	
-	static async findAllByWallet(walletId) {
-		const transactions = await knex('transactions').where({senderWallet: walletId}).orWhere({recipientWallet: walletId}).orderBy('created_at', 'desc').catch(
-			(error)=>{throw new Error("internal error"+error);}
-		);
-		return transactions.map((transaction) => {
-			return new Transaction(transaction.reference, transaction.type, transaction.sender_wallet, transaction.recipient_wallet, transaction.amount, transaction.narration, transaction.created_at, transaction.channel, transaction.status);
-		});
-		
-	}
-	
-	static async findTransactionByWallet(tranxId, walletId) {
-		const transaction = await knex('transactions').where('reference', tranxId).where('senderWallet', walletId).orWhere('recipientWallet', walletId).andWhere('reference', tranxId).first().catch(
-			(error)=>{throw new Error("internal error"+error);}
-		);
-		if(!transaction){
-			throw new Error("Transaction not found");
-		}
-		return new Transaction(transaction.reference, transaction.type, transaction.sender_wallet, transaction.recipient_wallet, transaction.amount, transaction.narration, transaction.created_at, transaction.channel, transaction.status);
+		return new Transaction(reference, businessid, invoiceid, clientid, amount, channel, status, new Date());
 	}
 
 	toJSON(){
-		const ddd = {
+		return {
 			reference: this.reference,
-			type: this.type,
-			senderWallet: this.senderWallet,
-			recipientWallet: this.recipientWallet,
+			businessid: this.businessid,
+			invoiceid: this.invoiceid,
+			clientid: this.clientid,
 			amount: this.amount,
-			narration: this.narration,
+			currency: this.currency,
+			channel: this.channel,
 			status: this.status,
 			createdAt: this.createdAt
 		}
-		return ddd;
 	}
 }
 

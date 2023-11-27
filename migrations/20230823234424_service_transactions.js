@@ -9,7 +9,7 @@ exports.up = function(knex) {
     table.string('service_reference', 50).notNullable();
     table.string('service_id', 50).notNullable();
     table.string('type', 20).notNullable();
-    table.float('amount').notNullable();
+    table.float('amount', 18, 2).notNullable();
     table.string('device_fingerprint', 50).nullable();
     table.string('narration', 50).nullable();
     table.string('status', 50).notNullable();
@@ -19,7 +19,7 @@ exports.up = function(knex) {
     table.string('invoice_reference', 100).notNullable();
     table.string('currency', 20).notNullable();
     table.string('ip', 20).nullable();
-    table.float('amount_settled').notNullable();
+    table.float('amount_settled', 18, 2).notNullable();
     table.unique('service_id');
   });
 };

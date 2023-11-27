@@ -258,71 +258,62 @@ class ClientController{
     }
 
     static async updateClient(request, response){
-        var businessData = request.body;
-        if(!businessData.firstname || businessData.firstname.length < 3){
-            return response.status(200).json({status:"error", success:false, message:"Firstname is missing or too short"});
-        } else if(!businessData.lastname || businessData.lastname.length < 3){
-            return response.status(200).json({status:"error", success:false, message:"Lastname is missing or too short"});
-        } else if(!businessData.phone || businessData.phone.length < 11){
-            return response.status(200).json({status:"error", success:false, message:"Phone number is missing or too short"});
-        } else if(!businessData.country || !['nigeria'].includes(businessData.country.toLowerCase())){
-            return response.status(200).json({status:"error", success:false, message:"unsupported country"});
-        // } else if(!businessData.state || businessData.state.length > 20){
-        //     return response.status(200).json({status:"error", success:false, message:"invalid state submitted"});
-        // } else if(!businessData.city || businessData.city.length > 20){
-        //     return response.status(200).json({status:"error", success:false, message:"invalid city submitted"});
-        } else if(!businessData.address || businessData.address.length > 50){
-            return response.status(200).json({status:"error", success:false, message:"Address is missing or too long. Enter your house and street/area address"});
-        } else if(!businessData.dob || validator.isDate(businessData.dob, {delimiters: ['-']})){
-            return response.status(200).json({status:"error", success:false, message:"Invalid date submitted for date of birth"});
+         
+        // Do input validation
+        const validationRules = [
+            body('name').isLength({ min: 3, max: 50 }).withMessage('Client name must be between 3 to 50 characters'),
+            body('email').isEmail().withMessage('Invalid email address'),
+            body('phonenumber').isMobilePhone().withMessage("Invalid phone number"),
+            body('address').isLength({min: 10, max: 100}).withMessage("Client address must be between 10 to 100 characters"),
+            param('clientid').trim().isLength({min: 5, max: 15}).withMessage('Invalid client id')
+        ];
+        await Promise.all(validationRules.map(validation => validation.run(request)));
+
+        // Get validation results
+        const errors = validationResult(request);
+        if (!errors.isEmpty()) {
+            return response.status(400).json({
+                status: "error",
+                success: false,
+                message: errors.array()[0].msg,
+                errors: errors.array()[0]
+            });
         }
-        
-        const firstName = businessData.firstname;
-        const lastName = businessData.lastname;
-        const phone = businessData.phone;
-        const country = businessData.country;
-        const state = businessData.state;
-        const city = businessData.city;
-        const address = businessData.address;
-        const dob = businessData.dob;
 
-        try{
-            //confirm login
+        // destructure client input
+        const { name, email, phonenumber, address } = request.body;
+        const { clientid } = request.params;
+
+        try {
             /**
-             * @type {Client}
+             * @type {Business}
              */
-            const client = request.client;
-            if(!client) throw new Error("You need to log in.");
+            const business = request.business;
+            if(!business) throw new Error("You need to login");
 
-            // update client
-            client.firstName = firstName;
-            client.lastName = lastName;
-            client.phone = phone;
-            client.dob = dob;
-            client.country = country;
+            // call client object
+            const client = await Client.findById(clientid);
+            client.email = email;
+            client.phone = phonenumber;
+            client.name = name;
             client.address = address;
-            
-            client.profileVisibility = profilevisibilty;
-            client.emailNotification = emailnotification;
-            client.finGoal = finGoal;
-            client.city = city;
-            client.state = state;
-            
             await client.save();
 
-            return response.status(200).json({
-                status:true,
-                success:true,
-                message: "Profile updated successfully"
-            });
+            //return response
+	        return response.status(200).json({
+	            status:true,
+	            success:true,
+	            message: "Client profile updated successful."
+	        });
         } catch (error) {
             console.error(error);
-            return response.status(200).json({
+            return response.status(500).json({
                 status:true,
                 success:false,
-                message: error.message
+                message:error.message
             });
         }
+                    
     }
 
     static async updateAvatar(request, response){

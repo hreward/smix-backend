@@ -5,16 +5,15 @@
 exports.up = function(knex) {
   return knex.schema.createTable('transactions', function(table) {
     table.increments('id').primary();
-    table.string('reference', 50).notNullable();
-    table.string('type', 50).notNullable();
-    table.float('amount').notNullable();
-    table.timestamp('created_at').defaultTo(knex.fn.now());
-    table.string('sender_wallet', 100).notNullable();
-    table.string('invoice_reference', 100).notNullable();
+    table.string('reference', 50).notNullable().unique();
+    table.string('business_reference', 50).notNullable();
+    table.string('invoice_reference', 50).notNullable();
+    table.string('client_reference', 50).notNullable();
+    table.float('amount', 18, 2).notNullable();
+    table.string('currency', 20).nullable();
     table.string('channel', 50).nullable();
-    table.string('narration', 100).notNullable();
     table.string('status', 20).notNullable();
-    table.unique('reference');
+    table.timestamp('created_at').defaultTo(knex.fn.now());
   });
 };
 

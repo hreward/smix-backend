@@ -8,6 +8,9 @@ require('dotenv').config();
 const {router: AuthRouter} = require("./routes/auth.router");
 const {router: BusinessRouter} = require("./routes/business.router");
 const {router: ClientRouter} = require("./routes/client.router");
+const {router: InvoiceRouter} = require("./routes/invoice.router");
+const {router: TransactionRouter} = require("./routes/transaction.router");
+const {router: AnalyticsRouter} = require("./routes/analytics.router");
 
 const mapp = express();
 
@@ -33,6 +36,9 @@ mapp.use(session({
 mapp.use("/auth", AuthRouter);
 mapp.use("/business", BusinessRouter);
 mapp.use("/client", ClientRouter);
+mapp.use("/invoice", InvoiceRouter);
+mapp.use("/transaction", TransactionRouter);
+mapp.use("/analytics", AnalyticsRouter);
 
 
 module.exports = {mapp};
