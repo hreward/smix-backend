@@ -14,9 +14,9 @@ jobs:
     - name: 📂 Sync files
       uses: SamKirkland/FTP-Deploy-Action@v4.3.4
       with:
-        server: ftp.smix.com.ng
+        server: ftp.coopnex.com
         username: ${{ secrets.ftp_user }}
         password: ${{ secrets.ftp_pass }}
         server-dir: ./api-xx/
         local-dir: ./
-        protocol: ftps-explicit
+        protocol: ftps
