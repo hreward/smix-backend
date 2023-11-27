@@ -20,4 +20,5 @@ jobs:
         server-dir: ./api-xx/
         local-dir: ./
         protocol: ftps
-        args: --trust
+    env:
+        FTP_DEPLOY_DISABLE_CERT_CHECK: true
