@@ -19,4 +19,4 @@ jobs:
         password: ${{ secrets.ftp_pass }}
         server-dir: ./api-xx/
         local-dir: ./
-        protocol: ftps
+        protocol: ftp
