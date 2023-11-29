@@ -4,13 +4,13 @@ const moment = require("moment");
 const {global} = require("../helper");
 
 class AuthCodes {
-    static async generateCode(purpose, userEmail){
+    static async generateCode(purpose, email){
         //generate code
         const code = uuid.v4().split("-")[0].slice(0,7).toUpperCase();
 
         var code_details = {
             code: code,
-            user_email: userEmail,
+            email: email,
             purpose: purpose,
             date_generated: moment().format("YYYY-MM-DD HH:mm:s"),
             expiry_date: moment().add(30, "minutes").format("YYYY-MM-DD HH:mm:s"),
@@ -19,7 +19,7 @@ class AuthCodes {
         };
 
         //delete codes that have been generated for this purpose
-        await knex('auth_codes').where({user_email: userEmail, purpose}).delete().catch(
+        await knex('auth_codes').where({email: email, purpose}).delete().catch(
             (error)=>{throw new Error("internal error"+error);}
         );
         await knex('auth_codes').insert(code_details).catch(
@@ -29,7 +29,7 @@ class AuthCodes {
     }
 
     static async verifyCode(email, code){
-        const dbcode = await knex('auth_codes').where({code, user_email: email}).first()
+        const dbcode = await knex('auth_codes').where({code, email}).first()
             .catch( (error)=>{throw new Error("internal error"+error);} );
         
         if(!dbcode){
@@ -47,7 +47,7 @@ class AuthCodes {
     }
 
     static async markCodeUsed(email, code){
-        await knex('auth_codes').where({code: code, user_email: email}).update({status: 'used'}).
+        await knex('auth_codes').where({code: code, email}).update({status: 'used'}).
         catch( (error)=>{throw new Error("internal error"+error);} );
     }
 

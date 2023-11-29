@@ -16,7 +16,7 @@ class InvoiceController{
         // Do input validation
         const validationRules = [
             body('clientid').isLength({ min: 3, max: 50 }).withMessage('Invalid client id'),
-            body('duedate').isDate({format: "mm-dd-yyyy", strictMode: false}).withMessage('Invalid due date'),
+            body('duedate').isDate({format: "yyyy-mm-dd", strictMode: false}).withMessage('Invalid due date'),
             body('currency').notEmpty().withMessage("Invalid currency selected"),
             body('items').notEmpty().isArray().withMessage("No item on the invoice"),
             body('items.*.description').isLength({ min: 3, max:50 }).withMessage('One or more item description missing.'),
@@ -78,6 +78,7 @@ class InvoiceController{
 	        return response.status(200).json({
 	            status:true,
 	            success:true,
+                data: invoice,
 	            message: "Invoice created successfully"
 	        });
         } catch (error) {

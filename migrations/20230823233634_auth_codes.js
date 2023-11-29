@@ -6,7 +6,7 @@ exports.up = function(knex) {
 	return knex.schema.createTable('auth_codes', function(table) {
 	  table.increments('id').primary();
 	  table.string('code', 50).notNullable();
-	  table.string('user_email', 100).notNullable();
+	  table.string('email', 100).notNullable();
 	  table.string('purpose', 50).notNullable();
 	  table.datetime('date_generated').notNullable();
 	  table.datetime('expiry_date').notNullable();

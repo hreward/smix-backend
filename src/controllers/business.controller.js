@@ -9,6 +9,7 @@ const {default: validator} = require("validator");
 const { AutoSave } = require("../models/autosave.model");
 const { Queue } = require("../models/queue.model");
 const { body, validationResult, param } = require("express-validator");
+const { EmailController } = require("./email.controller");
 
 
 class BusinessController{
@@ -20,7 +21,7 @@ class BusinessController{
             body('email').trim().isEmail().withMessage('Invalid email address'),
             body('password').trim().isLength({ min: 8 }).withMessage('Password must be at least 8 characters'),
             body('phonenumber').trim().isMobilePhone().withMessage("Invalid phone number"),
-            body('identificationnumber').trim().isAlphanumeric().optional().withMessage("Invalid phone number"),
+            body('identificationnumber').trim().isAlphanumeric().optional().withMessage("Invalid identification"),
             body('accountnumber').trim().isNumeric().isLength({max:10, min:10}).withMessage("Invalid account number"),
             body("bankcode").trim().isNumeric().isLength({ max: 10 })
         ];
@@ -77,7 +78,7 @@ class BusinessController{
             await business.saveBusinessBankAccount(bank.name, bank.code, acctResolve.account_name, acctResolve.account_number);
 	        
 	        //send otp email to user
-	        // await EmailController.sendSignupEmail(user.email, user.lastName);
+	        EmailController.sendSignupEmail(email, businessname).catch((error)=>{});
 
             //return response
 	        return response.status(200).json({

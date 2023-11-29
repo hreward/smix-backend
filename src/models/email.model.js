@@ -12,7 +12,7 @@ function getAccountVerificationTemplate(email, firstname, lastname, code){
                             <tbody>
                                 <tr>
                                     <td role="module-content">
-                                        <p>Welcome to Coopnex</p>
+                                        <p>Welcome to Smix</p>
                                     </td>
                                 </tr>
                             </tbody>
@@ -50,7 +50,7 @@ function getAccountVerificationTemplate(email, firstname, lastname, code){
                             <tbody>
                                 <tr>
                                     <td style="padding:0px 0px 0px 0px;font-size:10px;line-height:10px;background-color:#f9f5f2" valign="top" align="center">
-                                        <p><br> &copy; Coopnex </p>
+                                        <p><br> &copy; Smix </p>
                                     </td>
                                 </tr>
                             </tbody>
@@ -66,7 +66,7 @@ function getAccountVerificationTemplate(email, firstname, lastname, code){
 }
 
 
-// Email template for Account Verification
+// Email template for Password Change
 function getPasswordChangeTemplate(email, firstname, lastname, code){
     
     $emailTemplate = `
@@ -114,7 +114,65 @@ function getPasswordChangeTemplate(email, firstname, lastname, code){
                             <tbody>
                                 <tr>
                                     <td style="padding:0px 0px 0px 0px;font-size:15px;line-height:10px;background-color:#f9f5f2" valign="top" align="center">
-                                        &copy; Coopnex
+                                        &copy; Smix
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    `;
+
+    return $emailTemplate;
+
+}
+
+// Email template for Invoice Payment
+function getInvoicePaymentTemplate(email, name, amount, invoiceid, client){
+    
+    $emailTemplate = `
+        <table style="width:100%;" width="100%" cellspacing="0" cellpadding="0" border="0" align="left">
+            <tbody>
+                <tr>
+                    <td role="modules-container" style="padding:15px 5px 15px 25px;color:#516775;text-align:left" width="100%" bgcolor="#F9F5F2" align="left">
+                        <table role="module" id="sub-header" style="table-layout:fixed" width="100%" cellspacing="0" cellpadding="0" border="0">
+                            <tbody>
+                                <tr>
+                                    <td role="module-content" valign="top" height="100%">
+                                        <h2>INVOICE PAYMENT</h2>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                        <table role="module" id="body" style="table-layout:fixed" width="100%" cellspacing="0" cellpadding="0" border="0">
+                            <tbody>
+                                <tr>
+                                    <td role="module-content" valign="top" height="100%">
+                                        <p>Hello ${name} (${email}),</p>
+                                        <br>
+                                        <div style="font-family:inherit">
+                                            <span style="font-family:verdana,geneva,sans-serif">
+                                                You have recieved a payment of ${amount} from ${client} for invoice number ${invoiceid}
+                                                <br>
+                                            </span>
+                                            <span style="font-family:verdana,geneva,sans-serif; color:wine;">
+                                                Login to your Smix account for more details
+                                                <br>
+                                            </span>
+										</div>
+										
+                                        <br>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                        <table role="module" style="table-layout:fixed" width="100%" cellspacing="0" cellpadding="0" border="0" align="center">
+                            <tbody>
+                                <tr>
+                                    <td style="padding:0px 0px 0px 0px;font-size:15px;line-height:10px;background-color:#f9f5f2" valign="top" align="center">
+                                        &copy; Smix
                                     </td>
                                 </tr>
                             </tbody>
@@ -131,5 +189,7 @@ function getPasswordChangeTemplate(email, firstname, lastname, code){
 
 module.exports = {
     getAccountVerificationTemplate,
-    getPasswordChangeTemplate
+    getPasswordChangeTemplate,
+    getInvoicePaymentTemplate
+
 }

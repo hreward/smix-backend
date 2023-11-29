@@ -106,7 +106,9 @@ class ClientController{
                 id: client.id,
                 phone: client.phone,
                 address: client.address,
-                avatar: client.avatar
+                avatar: client.avatar,
+                status: client.status,
+                createdat: client.createdAt
             }
             return response.status(200).json({
                 status:true,
