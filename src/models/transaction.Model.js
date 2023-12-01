@@ -112,7 +112,7 @@ class Transaction {
 			currency: this.currency,
 			channel: this.channel,
 			status: this.status,
-			createdAt: this.createdAt
+			createdat: this.createdAt
 		}
 	}
 }

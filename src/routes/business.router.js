@@ -9,6 +9,6 @@ const upload = multer({ dest: 'tmps/uploads/', limits: {fieldSize: 1048576}, pre
 const upFiles = upload.fields([{name:"logo"}, {name:"cac"}, {name:"otherdoc"}]);
 
 router.post("/signup", upFiles, BusinessController.createBusiness);
-router.get("/get-business/:businessid", AuthController.requireLogin, BusinessController.getBusiness);
+router.get("/", AuthController.requireLogin, BusinessController.getBusiness);
 
 module.exports = {router};

@@ -1,13 +1,6 @@
 const { Business } = require("../models/business.model");
-const { User } = require("../models/client.model");
 const uuid = require("uuid");
-const {countrycurrency, nigeriaStates} = require("../helper");
 const Flutter = require("../services/flw/Flutter");
-const { ServiceTransaction } = require("../models/servicetransaction.model");
-const { renameSync } = require("fs");
-const {default: validator} = require("validator");
-const { AutoSave } = require("../models/autosave.model");
-const { Queue } = require("../models/queue.model");
 const { body, validationResult, param } = require("express-validator");
 const { EmailController } = require("./email.controller");
 
@@ -98,24 +91,6 @@ class BusinessController{
 
     static async getBusiness(request, response){
 
-        
-        // Do input validation
-        const validationRules = [
-            param('businessid').trim().isEmpty.withMessage('Invalid business id')
-        ];
-        await Promise.all(validationRules.map(validation => validation.run(request)));
-
-        // Get validation results
-        const errors = validationResult(request);
-        if (!errors.isEmpty()) {
-            return response.status(400).json({
-                status: "error",
-                success: false,
-                message: errors.array()[0].msg,
-                errors: errors.array()[0]
-            });
-        }
-
 
         try {
             /**
@@ -127,12 +102,12 @@ class BusinessController{
             // destructure request params
             const { businessid } = request.params;
 
-            const businessy = business.toJSON();
+            const businessjson = business.toJSON();
             
             return response.status(200).json({
                 status:true,
                 success:true,
-                data: businessy
+                data: businessjson
             });
         
         } catch (error) {
