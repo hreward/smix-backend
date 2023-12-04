@@ -5,7 +5,7 @@ const { Business } = require("../models/business.model");
 const { Invoice } = require("../models/invoice.model");
 const { InvoiceItem } = require("../models/invoiceitem.model");
 const { BusinessInvoiceManager } = require("../models/businessinvoicemanager.model");
-const { Transaction } = require("../models/transaction.Model");
+const { Transaction } = require("../models/transaction.model");
 const { InvoiceTransactionManager } = require("../models/invoicetransactionmanager.model");
 
 

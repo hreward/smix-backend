@@ -14,7 +14,7 @@ class BusinessController{
             body('email').trim().isEmail().withMessage('Invalid email address'),
             body('password').trim().isLength({ min: 8 }).withMessage('Password must be at least 8 characters'),
             body('phonenumber').trim().isMobilePhone().withMessage("Invalid phone number"),
-            body('identificationnumber').trim().isAlphanumeric().optional().withMessage("Invalid identification"),
+            // body('identificationnumber').trim().isAlphanumeric().optional().withMessage("Invalid identification number"),
             body('accountnumber').trim().isNumeric().isLength({max:10, min:10}).withMessage("Invalid account number"),
             body("bankcode").trim().isNumeric().isLength({ max: 10 })
         ];
@@ -55,8 +55,7 @@ class BusinessController{
             const business = new Business(businessId, businessname, email, phonenumber, "", identificationnumber, "", "", "");
             business.setPassword(password);
 
-            // const flutter = new Flutter(process.env.FLW_SECRET_KEY);
-            const flutter = new Flutter('FLWSECK-979683b3b075659a1119f821d1a562d8-X');
+            const flutter = new Flutter(process.env.FLW_SECRET_KEY_REALTEST);
             
             // get banks
             const banks = await flutter.getBanks();
@@ -77,7 +76,7 @@ class BusinessController{
 	        return response.status(200).json({
 	            status:true,
 	            success:true,
-	            message: "Signup successful. We have sent you a confirmation email."
+	            message: "Signup successful. Please proceed to login."
 	        });
         } catch (error) {
             return response.status(500).json({
@@ -118,6 +117,78 @@ class BusinessController{
                 message:error.message
             });
         }
+    }
+
+    static async getBanks(request, response){
+        try {
+
+            const flutter = new Flutter(process.env.FLW_SECRET_KEY_REALTEST);
+            
+            // get banks
+            /**
+             * @type {any[]}
+             */
+            const banks = await flutter.getBanks();
+            
+            return response.status(200).json({
+                status:true,
+                success:true,
+                data: banks.sort((a, b) => a.name.localeCompare(b.name))
+            });
+        
+        } catch (error) {
+            console.error(error);
+            return response.status(200).json({
+                status:true,
+                success:false,
+                message:error.message
+            });
+        }
+    }
+
+    static async resolveBank(request, response){
+        
+        // Do input validation
+        const validationRules = [
+            body('accountnumber').trim().isNumeric().isLength({max:10, min:10}).withMessage("Invalid account number"),
+            body("bankcode").trim().isNumeric().isLength({ max: 10 })
+        ];
+        await Promise.all(validationRules.map(validation => validation.run(request)));
+
+        // Get validation results
+        const errors = validationResult(request);
+        if (!errors.isEmpty()) {
+            return response.status(400).json({
+                status: "error",
+                success: false,
+                message: errors.array()[0].msg,
+                errors: errors.array()[0]
+            });
+        }
+
+        try {
+            // destructure user input
+            const { accountnumber, bankcode } = request.body;
+
+            const flutter = new Flutter(process.env.FLW_SECRET_KEY_REALTEST);
+
+            // resolve account number
+            const acctResolve = await flutter.resolveAccount(accountnumber, bankcode);
+
+            //return response
+	        return response.status(200).json({
+	            status:true,
+	            success:true,
+                data: acctResolve.account_name
+	        });
+        } catch (error) {
+            return response.status(500).json({
+                status:true,
+                success:false,
+                message:error.message
+            });
+        }
+                    
     }
 
     static async deleteBusiness(request, response){

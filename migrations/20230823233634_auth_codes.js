@@ -13,7 +13,6 @@ exports.up = function(knex) {
 	  table.datetime('date_used').notNullable();
 	  table.string('status', 20).notNullable();
 	  table.unique('code');
-	  table.foreign('user_email').references('email').inTable('users').onDelete('CASCADE').onUpdate('CASCADE').withKeyName('fk_authcode_user_email');
 	});
   };
   

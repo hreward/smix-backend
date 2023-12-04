@@ -9,6 +9,8 @@ const { BusinessClientManager } = require("../models/businessclientmanager.model
 class ClientController{
 
     static async newClient(request, response){
+
+        console.log(request.body);
         
         // Do input validation
         const validationRules = [
@@ -40,16 +42,33 @@ class ClientController{
             const business = request.business;
             if(!business) throw new Error("You need to login");
 
+
+
             // cascade client
             const clientId = uuid.v4().replace("-","").slice(0, 8).toUpperCase();
             const client = new Client(business.reference, clientId, name, email, phonenumber);
             client.address = address;
+            
+            // handle uploaded avatar
+            if(request.file){
+                if(!request.file.mimetype.split('/')[0] === 'image'){
+                    throw new Error("Please upload an image file for client profile image");
+                }
+                const avatar = request.file;
+                const newDest = `${process.env.cdnDir}clientimages/`; // please use absolute path reference here
+                const newFilename = `${avatar.filename}.png`;
+                renameSync(avatar.path, `${newDest}${newFilename}`);
+                client.avatar = newFilename
+            }
+
+            // save client
             await client.save();
 
             //return response
 	        return response.status(200).json({
 	            status:true,
 	            success:true,
+                data: client,
 	            message: "Client profile setup successful."
 	        });
         } catch (error) {
@@ -295,16 +314,33 @@ class ClientController{
 
             // call client object
             const client = await Client.findById(clientid);
+
+            // make updates
             client.email = email;
             client.phone = phonenumber;
             client.name = name;
             client.address = address;
+            
+            // handle uploaded avatar
+            if(request.file){
+                if(!request.file.mimetype.split('/')[0] === 'image'){
+                    throw new Error("Please upload an image file for client profile image");
+                }
+                const avatar = request.file;
+                const newDest = `${process.env.cdnDir}clientimages/`; // please use absolute path reference here
+                const newFilename = `${avatar.filename}.png`;
+                renameSync(avatar.path, `${newDest}${newFilename}`);
+                client.avatar = newFilename
+            }
+
+            // save client
             await client.save();
 
             //return response
 	        return response.status(200).json({
 	            status:true,
 	            success:true,
+                data: client,
 	            message: "Client profile updated successful."
 	        });
         } catch (error) {
@@ -316,47 +352,6 @@ class ClientController{
             });
         }
                     
-    }
-
-    static async updateAvatar(request, response){
-
-        try{
-            //confirm login
-            /**
-             * @type {Client}
-             */
-            const client = request.client;
-            if(!client) throw new Error("You need to log in.");
-
-            // handle uploaded avatar
-            if(!request.file){
-                throw new Error("No file uploaded");
-            }
-            if(!request.file.mimetype.split('/')[0] === 'image'){
-                throw new Error("Please upload an image file");
-            }
-            const avatar = request.file;
-            const newDest = `${process.env.cdnDir}profileimages/`; // please use absolute path reference here
-            const newFilename = `${avatar.filename}.png`;
-            renameSync(avatar.path, `${newDest}${newFilename}`);
-
-            // update client
-            client.avatar = newFilename;
-            await client.save();
-
-            return response.status(200).json({
-                status:true,
-                success:true,
-                message: "Profile image updated successfully"
-            });
-        } catch (error) {
-            console.error(error);
-            return response.status(200).json({
-                status:true,
-                success:false,
-                message: error.message
-            });
-        }
     }
 }
 

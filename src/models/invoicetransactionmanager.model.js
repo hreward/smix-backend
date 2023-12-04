@@ -1,6 +1,6 @@
 const { knex } = require("./db.model");
 const { Invoice } = require("./invoice.model");
-const { Transaction } = require("./transaction.Model");
+const { Transaction } = require("./transaction.model");
 
 class InvoiceTransactionManager {
 	

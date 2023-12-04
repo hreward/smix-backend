@@ -10,8 +10,7 @@ router.get("/", AuthController.requireLogin, ClientController.getClients);
 router.get("/:clientid", AuthController.requireLogin, ClientController.clientDetails);
 router.delete("/:clientid", AuthController.requireLogin, ClientController.deleteClient);
 router.patch("/:clientid", AuthController.requireLogin, ClientController.restoreClient);
-router.post("/new", AuthController.requireLogin, ClientController.newClient);
-router.post("/update", AuthController.requireLogin, ClientController.updateClient);
-router.post("/update/avatar", AuthController.requireLogin, upload.single('avatar'), ClientController.updateAvatar);
+router.post("/new", AuthController.requireLogin, upload.single('avatar'), ClientController.newClient);
+router.post("/update", AuthController.requireLogin, upload.single('avatar'), ClientController.updateClient);
 
 module.exports = {router};

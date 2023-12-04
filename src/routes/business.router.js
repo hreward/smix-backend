@@ -8,7 +8,9 @@ const router = express.Router();
 const upload = multer({ dest: 'tmps/uploads/', limits: {fieldSize: 1048576}, preservePath: true });
 const upFiles = upload.fields([{name:"logo"}, {name:"cac"}, {name:"otherdoc"}]);
 
-router.post("/signup", upFiles, BusinessController.createBusiness);
 router.get("/", AuthController.requireLogin, BusinessController.getBusiness);
+router.post("/signup", upFiles, BusinessController.createBusiness);
+router.get("/banklist", BusinessController.getBanks);
+router.post("/resolve-account", BusinessController.resolveBank);
 
 module.exports = {router};
