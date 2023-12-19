@@ -17,6 +17,6 @@ jobs:
         server: ftp.coopnex.com
         username: ${{ secrets.ftp_user }}
         password: ${{ secrets.ftp_pass }}
-        server-dir: ./api-xy/
+        server-dir: /smix_ng/check/api-xy/
         local-dir: ./
-        protocol: ftps
+        protocol: ftp
