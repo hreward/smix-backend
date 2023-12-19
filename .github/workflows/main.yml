@@ -19,4 +19,4 @@ jobs:
         password: ${{ secrets.ftp_pass }}
         server-dir: ./smix_ng/
         local-dir: ./
-        protocol: ftp
+        protocol: ftps
